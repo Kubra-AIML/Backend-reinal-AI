@@ -1,14 +1,16 @@
 import pytest
 from alembic import command
 from alembic.config import Config
+from fastapi.testclient import TestClient
 from sqlalchemy.orm import sessionmaker
 
 from app.config import BASE_DIR
-from app.db import make_engine
+from app.db import get_db, make_engine
+from app.main import app
 
 
 @pytest.fixture()
-def db(tmp_path):
+def session_factory(tmp_path):
     """A fresh database built by the real Alembic migration (so triggers are tested too)."""
     url = f"sqlite:///{tmp_path / 'test.db'}"
     cfg = Config(str(BASE_DIR / "alembic.ini"))
@@ -17,7 +19,26 @@ def db(tmp_path):
     command.upgrade(cfg, "head")
 
     engine = make_engine(url)
-    Session = sessionmaker(bind=engine, autoflush=False, expire_on_commit=False)
-    with Session() as session:
-        yield session
+    yield sessionmaker(bind=engine, autoflush=False, expire_on_commit=False)
     engine.dispose()
+
+
+@pytest.fixture()
+def db(session_factory):
+    with session_factory() as session:
+        yield session
+
+
+@pytest.fixture()
+def client(session_factory):
+    def override_get_db():
+        session = session_factory()
+        try:
+            yield session
+        finally:
+            session.close()
+
+    app.dependency_overrides[get_db] = override_get_db
+    with TestClient(app) as c:
+        yield c
+    app.dependency_overrides.clear()
