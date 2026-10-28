@@ -1,0 +1,30 @@
+{
+  "status": "placeholder",
+  "note": "Placeholder reason codes pending agreement with the project lead. This is not a validated clinical list.",
+  "reason_codes": [
+    {
+      "code": "blur_excessive",
+      "applies_to": "unusable",
+      "label": "Image too blurry",
+      "guidance": "Refocus and recapture the image."
+    },
+    {
+      "code": "illumination_poor",
+      "applies_to": "unusable",
+      "label": "Poor illumination",
+      "guidance": "Recapture with even lighting and no strong glare."
+    },
+    {
+      "code": "field_of_view_incomplete",
+      "applies_to": "unusable",
+      "label": "Retina not fully in view",
+      "guidance": "Recapture with the retina centred and fully visible."
+    },
+    {
+      "code": "not_fundus_image",
+      "applies_to": "not_fundus",
+      "label": "Not a retinal fundus photograph",
+      "guidance": "Check that the correct image was uploaded, then recapture or send for manual review."
+    }
+  ]
+}
