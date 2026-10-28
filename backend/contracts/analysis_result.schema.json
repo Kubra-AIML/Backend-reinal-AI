@@ -1,0 +1,241 @@
+{
+  "$defs": {
+    "Artifacts": {
+      "properties": {
+        "input_image": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Input Image"
+        },
+        "heatmap": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Heatmap"
+        }
+      },
+      "title": "Artifacts",
+      "type": "object"
+    },
+    "Prediction": {
+      "properties": {
+        "grade": {
+          "maximum": 4,
+          "minimum": 0,
+          "title": "Grade",
+          "type": "integer"
+        },
+        "class_scores": {
+          "items": {
+            "type": "number"
+          },
+          "maxItems": 5,
+          "minItems": 5,
+          "title": "Class Scores",
+          "type": "array"
+        },
+        "p_referable": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "P Referable",
+          "type": "number"
+        },
+        "referable": {
+          "title": "Referable",
+          "type": "boolean"
+        },
+        "confidence": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Confidence"
+        },
+        "calibration_status": {
+          "enum": [
+            "uncalibrated",
+            "calibrated"
+          ],
+          "title": "Calibration Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "grade",
+        "class_scores",
+        "p_referable",
+        "referable",
+        "calibration_status"
+      ],
+      "title": "Prediction",
+      "type": "object"
+    },
+    "Quality": {
+      "properties": {
+        "verdict": {
+          "enum": [
+            "usable",
+            "unusable",
+            "not_fundus"
+          ],
+          "title": "Verdict",
+          "type": "string"
+        },
+        "reason_codes": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Reason Codes",
+          "type": "array"
+        },
+        "metrics": {
+          "additionalProperties": {
+            "type": "number"
+          },
+          "title": "Metrics",
+          "type": "object"
+        }
+      },
+      "required": [
+        "verdict"
+      ],
+      "title": "Quality",
+      "type": "object"
+    },
+    "Versions": {
+      "properties": {
+        "classifier": {
+          "title": "Classifier",
+          "type": "string"
+        },
+        "quality_gate": {
+          "title": "Quality Gate",
+          "type": "string"
+        },
+        "preprocess_spec": {
+          "title": "Preprocess Spec",
+          "type": "string"
+        }
+      },
+      "required": [
+        "classifier",
+        "quality_gate",
+        "preprocess_spec"
+      ],
+      "title": "Versions",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "schema_version": {
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "engine": {
+      "enum": [
+        "stub",
+        "cache",
+        "matlab"
+      ],
+      "title": "Engine",
+      "type": "string"
+    },
+    "case_ref": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Case Ref"
+    },
+    "versions": {
+      "$ref": "#/$defs/Versions"
+    },
+    "quality": {
+      "$ref": "#/$defs/Quality"
+    },
+    "prediction": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Prediction"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "recommended_action": {
+      "title": "Recommended Action",
+      "type": "string"
+    },
+    "review_flags": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Review Flags",
+      "type": "array"
+    },
+    "artifacts": {
+      "$ref": "#/$defs/Artifacts"
+    },
+    "timing_ms": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Timing Ms"
+    },
+    "notice": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Notice"
+    }
+  },
+  "required": [
+    "schema_version",
+    "engine",
+    "versions",
+    "quality",
+    "recommended_action"
+  ],
+  "title": "AnalysisResult",
+  "type": "object"
+}
