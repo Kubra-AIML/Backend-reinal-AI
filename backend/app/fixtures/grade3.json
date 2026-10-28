@@ -1,0 +1,40 @@
+{
+  "schema_version": "1.0.0",
+  "engine": "stub",
+  "case_ref": "STUB-G3",
+  "versions": {
+    "classifier": "stub-classifier-0.0",
+    "quality_gate": "stub-quality-gate-0.0",
+    "preprocess_spec": "stub-preprocess-0.0"
+  },
+  "quality": {
+    "verdict": "usable",
+    "reason_codes": [],
+    "metrics": {
+      "sharpness": 0.82,
+      "illumination": 0.77
+    }
+  },
+  "prediction": {
+    "grade": 3,
+    "class_scores": [
+      0.02,
+      0.05,
+      0.13,
+      0.7,
+      0.1
+    ],
+    "p_referable": 0.93,
+    "referable": true,
+    "confidence": 0.7,
+    "calibration_status": "uncalibrated"
+  },
+  "recommended_action": "Synthetic example only. A clinician reviews the image and decides.",
+  "review_flags": [],
+  "artifacts": {
+    "input_image": null,
+    "heatmap": null
+  },
+  "timing_ms": 0.0,
+  "notice": "STUB DATA: synthetic fixture. No model was run and no image was analysed."
+}

@@ -1,0 +1,31 @@
+{
+  "schema_version": "1.0.0",
+  "engine": "stub",
+  "case_ref": "STUB-BLUR",
+  "versions": {
+    "classifier": "stub-classifier-0.0",
+    "quality_gate": "stub-quality-gate-0.0",
+    "preprocess_spec": "stub-preprocess-0.0"
+  },
+  "quality": {
+    "verdict": "unusable",
+    "reason_codes": [
+      "blur_excessive"
+    ],
+    "metrics": {
+      "sharpness": 0.12,
+      "illumination": 0.7
+    }
+  },
+  "prediction": null,
+  "recommended_action": "Recapture the image: it is too blurry to analyse. No grade is given.",
+  "review_flags": [
+    "recapture_required"
+  ],
+  "artifacts": {
+    "input_image": null,
+    "heatmap": null
+  },
+  "timing_ms": 0.0,
+  "notice": "STUB DATA: synthetic fixture. No model was run and no image was analysed."
+}
