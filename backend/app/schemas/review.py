@@ -1,13 +1,27 @@
 from datetime import datetime
 from typing import Literal, Optional, get_args
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 Decision = Literal["agree", "override", "recapture", "refer"]  # PLACEHOLDER: confirm with project lead
 ALLOWED_DECISIONS = get_args(Decision)
 
 
 class ReviewCreate(BaseModel):
+    model_config = ConfigDict(
+        json_schema_extra={
+            "examples": [
+                {"reviewer": "dr_example", "decision": "agree"},
+                {
+                    "reviewer": "dr_example",
+                    "decision": "override",
+                    "corrected_grade": 3,
+                    "notes": "Example only. Do not enter patient-identifying details.",
+                },
+            ]
+        }
+    )
+
     reviewer: str = Field(min_length=1, max_length=100, description="Reviewer name or ID (self-declared, no login yet)")
     decision: Decision
     corrected_grade: Optional[int] = Field(default=None, ge=0, le=4)
