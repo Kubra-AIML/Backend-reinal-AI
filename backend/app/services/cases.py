@@ -1,16 +1,14 @@
 import uuid
 from datetime import timezone
 from typing import Optional
-
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
-
 from ..errors import ApiError
 from ..models import Case
 from ..schemas.case import CaseResponse, DuplicateWarning
 from ..schemas.result import AnalysisResult
-from . import engine_stub
+from . import engine as engine_selector
 from .audit import record_event
 from .model_versions import get_or_create_model_version
 
@@ -56,7 +54,7 @@ def create_case(
             return _replay_or_conflict(existing, sha256), False
 
     case_ref = new_case_ref()
-    result = engine_stub.analyse(sha256, case_ref)
+    result = engine_selector.analyse(sha256, case_ref)
 
     try:
         mv = get_or_create_model_version(db, result.versions, result.engine)

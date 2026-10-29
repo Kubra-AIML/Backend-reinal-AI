@@ -35,5 +35,10 @@ class Settings(BaseSettings):
     )
     registry_path: Path = BASE_DIR / "models" / "registry.json"
 
+    # Precomputed demo outputs, one file per image: <sha256>.json
+    replay_dir: Path = BASE_DIR / "replay"
+    # Queue lane policy supplied by Teammate 2. Not shipped with the backend.
+    lane_policy_path: Path = BASE_DIR / "policy" / "lane_policy.json"
+
 
 settings = Settings()
