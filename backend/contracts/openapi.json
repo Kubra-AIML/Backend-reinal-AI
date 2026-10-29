@@ -1,0 +1,1325 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "RetinaGuide XAI API",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/health": {
+      "get": {
+        "tags": [
+          "system"
+        ],
+        "summary": "Health",
+        "operationId": "health_api_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/meta": {
+      "get": {
+        "tags": [
+          "system"
+        ],
+        "summary": "Shared product metadata and policy text",
+        "operationId": "meta_api_meta_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MetaResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reason-codes": {
+      "get": {
+        "tags": [
+          "system"
+        ],
+        "summary": "Reason codes (placeholder list)",
+        "operationId": "reason_codes_api_reason_codes_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReasonCodesResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/cases": {
+      "post": {
+        "tags": [
+          "cases"
+        ],
+        "summary": "Upload an image and create a case",
+        "description": "Creates a case from a JPEG or PNG upload. The file type is checked by its signature. Send an Idempotency-Key header so a retried request returns the original case (HTTP 200, Idempotent-Replay: true) instead of creating a duplicate. In stub mode the result is a synthetic example and the image is not inspected.",
+        "operationId": "create_case_api_cases_post",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_create_case_api_cases_post"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CaseResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Empty file",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Idempotency-Key reused with a different file",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "File too large",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Not a JPEG or PNG",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "cases"
+        ],
+        "summary": "List cases, newest first",
+        "operationId": "list_cases_api_cases_get",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 20,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          },
+          {
+            "name": "engine",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "stub",
+                    "cache",
+                    "matlab"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Engine"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CaseList"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/cases/{case_ref}": {
+      "get": {
+        "tags": [
+          "cases"
+        ],
+        "summary": "Case detail with reviews",
+        "description": "Accepts the case id or the case reference (RG-XXXXXXXX). The original result is never altered by reviews.",
+        "operationId": "get_case_api_cases__case_ref__get",
+        "parameters": [
+          {
+            "name": "case_ref",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Case Ref"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CaseDetail"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Case not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/cases/{case_ref}/reviews": {
+      "post": {
+        "tags": [
+          "cases"
+        ],
+        "summary": "Add a review (always a new record)",
+        "description": "Appends a review. The original prediction is never overwritten. decision 'override' requires corrected_grade; other decisions must not send one. The reviewer field is self-declared (no login yet).",
+        "operationId": "create_review_api_cases__case_ref__reviews_post",
+        "parameters": [
+          {
+            "name": "case_ref",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Case Ref"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReviewCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewOut"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Case not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/evidence": {
+      "get": {
+        "tags": [
+          "evidence"
+        ],
+        "summary": "Which evidence files are available",
+        "operationId": "evidence_index_api_evidence_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EvidenceIndex"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/evidence/{name}": {
+      "get": {
+        "tags": [
+          "evidence"
+        ],
+        "summary": "Serve one evidence JSON file",
+        "operationId": "evidence_file_api_evidence__name__get",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Name"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "Response Evidence File Api Evidence  Name  Get"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Unknown name, or file not provided yet",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AnalysisResult": {
+        "properties": {
+          "schema_version": {
+            "type": "string",
+            "title": "Schema Version"
+          },
+          "engine": {
+            "type": "string",
+            "enum": [
+              "stub",
+              "cache",
+              "matlab"
+            ],
+            "title": "Engine"
+          },
+          "case_ref": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Case Ref"
+          },
+          "versions": {
+            "$ref": "#/components/schemas/Versions"
+          },
+          "quality": {
+            "$ref": "#/components/schemas/Quality"
+          },
+          "prediction": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Prediction"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "recommended_action": {
+            "type": "string",
+            "title": "Recommended Action"
+          },
+          "review_flags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Review Flags"
+          },
+          "artifacts": {
+            "$ref": "#/components/schemas/Artifacts"
+          },
+          "timing_ms": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Timing Ms"
+          },
+          "notice": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notice"
+          }
+        },
+        "type": "object",
+        "required": [
+          "schema_version",
+          "engine",
+          "versions",
+          "quality",
+          "recommended_action"
+        ],
+        "title": "AnalysisResult"
+      },
+      "Artifacts": {
+        "properties": {
+          "input_image": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Input Image"
+          },
+          "heatmap": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Heatmap"
+          }
+        },
+        "type": "object",
+        "title": "Artifacts"
+      },
+      "Body_create_case_api_cases_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "format": "binary",
+            "title": "File"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "title": "Body_create_case_api_cases_post"
+      },
+      "CaseDetail": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "case_ref": {
+            "type": "string",
+            "title": "Case Ref"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "image_sha256": {
+            "type": "string",
+            "title": "Image Sha256"
+          },
+          "content_type": {
+            "type": "string",
+            "title": "Content Type"
+          },
+          "size_bytes": {
+            "type": "integer",
+            "title": "Size Bytes"
+          },
+          "engine": {
+            "type": "string",
+            "title": "Engine"
+          },
+          "idempotent_replay": {
+            "type": "boolean",
+            "title": "Idempotent Replay",
+            "default": false
+          },
+          "duplicate_warning": {
+            "$ref": "#/components/schemas/DuplicateWarning"
+          },
+          "result": {
+            "$ref": "#/components/schemas/AnalysisResult"
+          },
+          "reviews": {
+            "items": {
+              "$ref": "#/components/schemas/ReviewOut"
+            },
+            "type": "array",
+            "title": "Reviews",
+            "default": []
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "case_ref",
+          "created_at",
+          "image_sha256",
+          "content_type",
+          "size_bytes",
+          "engine",
+          "duplicate_warning",
+          "result"
+        ],
+        "title": "CaseDetail",
+        "description": "The original result is never changed; reviews are listed separately, oldest first."
+      },
+      "CaseList": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/CaseSummary"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "limit": {
+            "type": "integer",
+            "title": "Limit"
+          },
+          "offset": {
+            "type": "integer",
+            "title": "Offset"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "total",
+          "limit",
+          "offset"
+        ],
+        "title": "CaseList"
+      },
+      "CaseResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "case_ref": {
+            "type": "string",
+            "title": "Case Ref"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "image_sha256": {
+            "type": "string",
+            "title": "Image Sha256"
+          },
+          "content_type": {
+            "type": "string",
+            "title": "Content Type"
+          },
+          "size_bytes": {
+            "type": "integer",
+            "title": "Size Bytes"
+          },
+          "engine": {
+            "type": "string",
+            "title": "Engine"
+          },
+          "idempotent_replay": {
+            "type": "boolean",
+            "title": "Idempotent Replay",
+            "default": false
+          },
+          "duplicate_warning": {
+            "$ref": "#/components/schemas/DuplicateWarning"
+          },
+          "result": {
+            "$ref": "#/components/schemas/AnalysisResult"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "case_ref",
+          "created_at",
+          "image_sha256",
+          "content_type",
+          "size_bytes",
+          "engine",
+          "duplicate_warning",
+          "result"
+        ],
+        "title": "CaseResponse"
+      },
+      "CaseSummary": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "case_ref": {
+            "type": "string",
+            "title": "Case Ref"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "engine": {
+            "type": "string",
+            "title": "Engine"
+          },
+          "quality_verdict": {
+            "type": "string",
+            "title": "Quality Verdict"
+          },
+          "grade": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Grade"
+          },
+          "referable": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Referable"
+          },
+          "review_flags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Review Flags",
+            "default": []
+          },
+          "review_count": {
+            "type": "integer",
+            "title": "Review Count",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "case_ref",
+          "created_at",
+          "engine",
+          "quality_verdict"
+        ],
+        "title": "CaseSummary"
+      },
+      "DuplicateWarning": {
+        "properties": {
+          "is_duplicate": {
+            "type": "boolean",
+            "title": "Is Duplicate"
+          },
+          "existing_case_refs": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Existing Case Refs"
+          },
+          "message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "is_duplicate",
+          "existing_case_refs"
+        ],
+        "title": "DuplicateWarning"
+      },
+      "ErrorBody": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "details": {
+            "anyOf": [
+              {},
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Details"
+          },
+          "request_id": {
+            "type": "string",
+            "title": "Request Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code",
+          "message",
+          "request_id"
+        ],
+        "title": "ErrorBody"
+      },
+      "ErrorResponse": {
+        "properties": {
+          "error": {
+            "$ref": "#/components/schemas/ErrorBody"
+          }
+        },
+        "type": "object",
+        "required": [
+          "error"
+        ],
+        "title": "ErrorResponse",
+        "examples": [
+          {
+            "error": {
+              "code": "not_found",
+              "message": "Case not found",
+              "request_id": "3f2b9c1e5a7d4e68a1b2c3d4e5f60718"
+            }
+          }
+        ]
+      },
+      "EvidenceFileStatus": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "available": {
+            "type": "boolean",
+            "title": "Available"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "available"
+        ],
+        "title": "EvidenceFileStatus"
+      },
+      "EvidenceIndex": {
+        "properties": {
+          "files": {
+            "items": {
+              "$ref": "#/components/schemas/EvidenceFileStatus"
+            },
+            "type": "array",
+            "title": "Files"
+          }
+        },
+        "type": "object",
+        "required": [
+          "files"
+        ],
+        "title": "EvidenceIndex"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "MetaResponse": {
+        "properties": {
+          "product_name": {
+            "type": "string",
+            "title": "Product Name"
+          },
+          "schema_version": {
+            "type": "string",
+            "title": "Schema Version"
+          },
+          "engine_mode": {
+            "type": "string",
+            "title": "Engine Mode"
+          },
+          "live_inference": {
+            "type": "boolean",
+            "title": "Live Inference"
+          },
+          "versions": {
+            "$ref": "#/components/schemas/Versions"
+          },
+          "referable_threshold": {
+            "type": "number",
+            "title": "Referable Threshold"
+          },
+          "confidence_policy": {
+            "type": "string",
+            "title": "Confidence Policy"
+          },
+          "limitations_text": {
+            "type": "string",
+            "title": "Limitations Text"
+          },
+          "clinician_statement": {
+            "type": "string",
+            "title": "Clinician Statement"
+          },
+          "max_upload_mb": {
+            "type": "integer",
+            "title": "Max Upload Mb"
+          },
+          "accepted_content_types": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Accepted Content Types"
+          },
+          "review_decisions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Review Decisions"
+          }
+        },
+        "type": "object",
+        "required": [
+          "product_name",
+          "schema_version",
+          "engine_mode",
+          "live_inference",
+          "versions",
+          "referable_threshold",
+          "confidence_policy",
+          "limitations_text",
+          "clinician_statement",
+          "max_upload_mb",
+          "accepted_content_types",
+          "review_decisions"
+        ],
+        "title": "MetaResponse"
+      },
+      "Prediction": {
+        "properties": {
+          "grade": {
+            "type": "integer",
+            "maximum": 4.0,
+            "minimum": 0.0,
+            "title": "Grade"
+          },
+          "class_scores": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array",
+            "maxItems": 5,
+            "minItems": 5,
+            "title": "Class Scores"
+          },
+          "p_referable": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "P Referable"
+          },
+          "referable": {
+            "type": "boolean",
+            "title": "Referable"
+          },
+          "confidence": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confidence"
+          },
+          "calibration_status": {
+            "type": "string",
+            "enum": [
+              "uncalibrated",
+              "calibrated"
+            ],
+            "title": "Calibration Status"
+          }
+        },
+        "type": "object",
+        "required": [
+          "grade",
+          "class_scores",
+          "p_referable",
+          "referable",
+          "calibration_status"
+        ],
+        "title": "Prediction"
+      },
+      "Quality": {
+        "properties": {
+          "verdict": {
+            "type": "string",
+            "enum": [
+              "usable",
+              "unusable",
+              "not_fundus"
+            ],
+            "title": "Verdict"
+          },
+          "reason_codes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Reason Codes"
+          },
+          "metrics": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "type": "object",
+            "title": "Metrics"
+          }
+        },
+        "type": "object",
+        "required": [
+          "verdict"
+        ],
+        "title": "Quality"
+      },
+      "ReasonCode": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "applies_to": {
+            "type": "string",
+            "title": "Applies To"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "guidance": {
+            "type": "string",
+            "title": "Guidance"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code",
+          "applies_to",
+          "label",
+          "guidance"
+        ],
+        "title": "ReasonCode"
+      },
+      "ReasonCodesResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "note": {
+            "type": "string",
+            "title": "Note"
+          },
+          "reason_codes": {
+            "items": {
+              "$ref": "#/components/schemas/ReasonCode"
+            },
+            "type": "array",
+            "title": "Reason Codes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "note",
+          "reason_codes"
+        ],
+        "title": "ReasonCodesResponse"
+      },
+      "ReviewCreate": {
+        "properties": {
+          "reviewer": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Reviewer",
+            "description": "Reviewer name or ID (self-declared, no login yet)"
+          },
+          "decision": {
+            "type": "string",
+            "enum": [
+              "agree",
+              "override",
+              "recapture",
+              "refer"
+            ],
+            "title": "Decision"
+          },
+          "corrected_grade": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 4.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Corrected Grade"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes",
+            "description": "Do not enter patient-identifying details"
+          }
+        },
+        "type": "object",
+        "required": [
+          "reviewer",
+          "decision"
+        ],
+        "title": "ReviewCreate",
+        "examples": [
+          {
+            "decision": "agree",
+            "reviewer": "dr_example"
+          },
+          {
+            "corrected_grade": 3,
+            "decision": "override",
+            "notes": "Example only. Do not enter patient-identifying details.",
+            "reviewer": "dr_example"
+          }
+        ]
+      },
+      "ReviewOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "case_id": {
+            "type": "string",
+            "title": "Case Id"
+          },
+          "case_ref": {
+            "type": "string",
+            "title": "Case Ref"
+          },
+          "reviewer": {
+            "type": "string",
+            "title": "Reviewer"
+          },
+          "decision": {
+            "type": "string",
+            "title": "Decision"
+          },
+          "corrected_grade": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Corrected Grade"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "case_id",
+          "case_ref",
+          "reviewer",
+          "decision",
+          "created_at"
+        ],
+        "title": "ReviewOut"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      },
+      "Versions": {
+        "properties": {
+          "classifier": {
+            "type": "string",
+            "title": "Classifier"
+          },
+          "quality_gate": {
+            "type": "string",
+            "title": "Quality Gate"
+          },
+          "preprocess_spec": {
+            "type": "string",
+            "title": "Preprocess Spec"
+          }
+        },
+        "type": "object",
+        "required": [
+          "classifier",
+          "quality_gate",
+          "preprocess_spec"
+        ],
+        "title": "Versions"
+      }
+    }
+  }
+}

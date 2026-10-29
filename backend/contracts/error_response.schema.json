@@ -34,6 +34,16 @@
       "type": "object"
     }
   },
+  "examples": [
+    {
+      "error": {
+        "code": "not_found",
+        "details": null,
+        "message": "Case not found",
+        "request_id": "3f2b9c1e5a7d4e68a1b2c3d4e5f60718"
+      }
+    }
+  ],
   "properties": {
     "error": {
       "$ref": "#/$defs/ErrorBody"
