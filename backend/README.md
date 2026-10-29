@@ -50,6 +50,8 @@ uvicorn app.main:app --reload
 | `POST /api/cases/{id or case_ref}/reviews` | Add a review (always a new record) |
 | `GET /api/reason-codes` | Reason codes (placeholder list) |
 | `GET /api/evidence`, `GET /api/evidence/{name}` | Evidence JSON files (404 until provided) |
+| `GET /api/cases/{id or case_ref}/report`, `GET .../report.pdf` | Report JSON, and a PDF rendered from it (download is audited) |
+| `GET /api/models`, `GET /api/models/active` | Read-only model registry from `models/registry.json` (404 until provided) |
 
 Interactive docs are at `/docs`. The exported contract is `contracts/openapi.json`, with JSON Schemas beside it.
 
@@ -90,7 +92,8 @@ A test fails if these files are stale.
 - Review decisions, reason codes and the referable definition (grades 2 to 4) are placeholders pending agreement with the project lead.
 - Case list is not yet filterable by queue lane (needs the agreed policy file).
 - SQLite only. Not hardened for production, and no rate limiting yet.
-- Image and heatmap file serving is not implemented. No artifact files exist yet.
+- The PDF has no submitted image or heatmap yet (image bytes are not stored and no heatmap files exist).
+- The registry format is a proposal until the project lead confirms theirs.
 
 ## Demo fallback
 

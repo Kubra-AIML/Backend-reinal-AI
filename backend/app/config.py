@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     referable_threshold: float = 0.5
     schema_version: str = "1.0.0"
 
-    # Version placeholders until the project lead's model registry is available (M7).
+    # Version placeholders until the project lead's model registry is available.
     classifier_version: str = "stub-classifier-0.0"
     quality_gate_version: str = "stub-quality-gate-0.0"
     preprocess_spec_version: str = "stub-preprocess-0.0"
@@ -28,6 +28,12 @@ class Settings(BaseSettings):
 
     # Folder where Teammate 2's evidence JSON files are placed.
     evidence_dir: Path = BASE_DIR / "evidence"
+
+    benchmark_caveat: str = (
+        "Benchmark results come from a research dataset and may not reflect performance on other "
+        "images, devices or populations. No clinical validation has been performed."
+    )
+    registry_path: Path = BASE_DIR / "models" / "registry.json"
 
 
 settings = Settings()
