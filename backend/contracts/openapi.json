@@ -357,6 +357,178 @@
         }
       }
     },
+    "/api/lanes": {
+      "get": {
+        "tags": [
+          "queue"
+        ],
+        "summary": "Lane policy (read-only, supplied by Teammate 2)",
+        "operationId": "get_lanes_api_lanes_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LanePolicy"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Lane policy not provided yet",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Lane policy file invalid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/queue": {
+      "get": {
+        "tags": [
+          "queue"
+        ],
+        "summary": "Case queue, filterable and sortable by lane",
+        "description": "Lane values come only from the agreed policy file. The backend does not define clinical urgency. sort=lane orders by lane priority, then newest first within a lane.",
+        "operationId": "get_queue_api_queue_get",
+        "parameters": [
+          {
+            "name": "lane",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Only cases in this lane id",
+              "title": "Lane"
+            },
+            "description": "Only cases in this lane id"
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "lane",
+                "newest",
+                "oldest"
+              ],
+              "type": "string",
+              "default": "lane",
+              "title": "Sort"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 20,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          },
+          {
+            "name": "engine",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "stub",
+                    "cache",
+                    "matlab"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Engine"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QueueList"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Lane policy not provided yet",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Lane policy file invalid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unknown lane or bad parameter",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/cases/{case_ref}/report": {
       "get": {
         "tags": [
@@ -1122,6 +1294,87 @@
         "type": "object",
         "title": "HTTPValidationError"
       },
+      "LaneDef": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          },
+          "priority": {
+            "type": "integer",
+            "title": "Priority",
+            "description": "Lower number = earlier in the queue. Defined by the policy file."
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "priority"
+        ],
+        "title": "LaneDef"
+      },
+      "LanePolicy": {
+        "properties": {
+          "policy_version": {
+            "type": "string",
+            "title": "Policy Version"
+          },
+          "lanes": {
+            "items": {
+              "$ref": "#/components/schemas/LaneDef"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Lanes"
+          },
+          "rules": {
+            "items": {
+              "$ref": "#/components/schemas/LaneRule"
+            },
+            "type": "array",
+            "title": "Rules"
+          },
+          "default_lane": {
+            "type": "string",
+            "title": "Default Lane"
+          }
+        },
+        "type": "object",
+        "required": [
+          "policy_version",
+          "lanes",
+          "default_lane"
+        ],
+        "title": "LanePolicy"
+      },
+      "LaneRule": {
+        "properties": {
+          "lane": {
+            "type": "string",
+            "title": "Lane"
+          },
+          "when": {
+            "$ref": "#/components/schemas/RuleWhen"
+          }
+        },
+        "type": "object",
+        "required": [
+          "lane",
+          "when"
+        ],
+        "title": "LaneRule"
+      },
       "MetaResponse": {
         "properties": {
           "product_name": {
@@ -1357,6 +1610,148 @@
           "verdict"
         ],
         "title": "Quality"
+      },
+      "QueueItem": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "case_ref": {
+            "type": "string",
+            "title": "Case Ref"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "engine": {
+            "type": "string",
+            "title": "Engine"
+          },
+          "quality_verdict": {
+            "type": "string",
+            "title": "Quality Verdict"
+          },
+          "grade": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Grade"
+          },
+          "referable": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Referable"
+          },
+          "review_flags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Review Flags",
+            "default": []
+          },
+          "review_count": {
+            "type": "integer",
+            "title": "Review Count",
+            "default": 0
+          },
+          "lane": {
+            "type": "string",
+            "title": "Lane"
+          },
+          "lane_label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lane Label"
+          },
+          "lane_priority": {
+            "type": "integer",
+            "title": "Lane Priority"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "case_ref",
+          "created_at",
+          "engine",
+          "quality_verdict",
+          "lane",
+          "lane_priority"
+        ],
+        "title": "QueueItem"
+      },
+      "QueueList": {
+        "properties": {
+          "policy_version": {
+            "type": "string",
+            "title": "Policy Version"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/QueueItem"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "limit": {
+            "type": "integer",
+            "title": "Limit"
+          },
+          "offset": {
+            "type": "integer",
+            "title": "Offset"
+          },
+          "lane": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lane"
+          },
+          "sort": {
+            "type": "string",
+            "title": "Sort"
+          }
+        },
+        "type": "object",
+        "required": [
+          "policy_version",
+          "items",
+          "total",
+          "limit",
+          "offset",
+          "sort"
+        ],
+        "title": "QueueList"
       },
       "ReasonCode": {
         "properties": {
@@ -1688,6 +2083,65 @@
           "created_at"
         ],
         "title": "ReviewOut"
+      },
+      "RuleWhen": {
+        "properties": {
+          "quality_verdict": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "usable",
+                  "unusable",
+                  "not_fundus"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quality Verdict"
+          },
+          "grade": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 4.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Grade"
+          },
+          "referable": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Referable"
+          },
+          "review_flag": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Review Flag"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "RuleWhen",
+        "description": "Conditions on existing result fields. All listed conditions must match."
       },
       "ValidationError": {
         "properties": {

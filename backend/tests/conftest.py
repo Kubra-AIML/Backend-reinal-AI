@@ -30,7 +30,7 @@ def db(session_factory):
 
 
 @pytest.fixture()
-def client(session_factory):
+def client(session_factory, monkeypatch):
     def override_get_db():
         session = session_factory()
         try:
@@ -39,6 +39,8 @@ def client(session_factory):
             session.close()
 
     app.dependency_overrides[get_db] = override_get_db
+    # The startup hook must write to the test database, never to the real one.
+    monkeypatch.setattr("app.main.SessionLocal", session_factory)
     with TestClient(app) as c:
         yield c
     app.dependency_overrides.clear()

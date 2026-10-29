@@ -37,6 +37,8 @@ uvicorn app.main:app --reload
 | `REFERABLE_THRESHOLD` | `0.5` | Threshold published by `/api/meta` |
 | `PRODUCT_NAME` | `RetinaGuide XAI` | Display name |
 | `CLASSIFIER_VERSION`, `QUALITY_GATE_VERSION`, `PREPROCESS_SPEC_VERSION` | `stub-...-0.0` | Version placeholders until the model registry is available |
+| `REPLAY_DIR` | `replay/` | Folder of precomputed outputs, one `<sha256>.json` per image (used when `ENGINE_MODE=cache`) |
+| `LANE_POLICY_PATH` | `policy/lane_policy.json` | Queue lane policy supplied by Teammate 2 |
 
 ## Endpoints
 
@@ -52,6 +54,7 @@ uvicorn app.main:app --reload
 | `GET /api/evidence`, `GET /api/evidence/{name}` | Evidence JSON files (404 until provided) |
 | `GET /api/cases/{id or case_ref}/report`, `GET .../report.pdf` | Report JSON, and a PDF rendered from it (download is audited) |
 | `GET /api/models`, `GET /api/models/active` | Read-only model registry from `models/registry.json` (404 until provided) |
+| `GET /api/lanes`, `GET /api/queue` | Lane policy and the case queue, filter and sort by lane (404 until `policy/lane_policy.json` exists) |
 
 Interactive docs are at `/docs`. The exported contract is `contracts/openapi.json`, with JSON Schemas beside it.
 
@@ -97,4 +100,8 @@ A test fails if these files are stale.
 
 ## Demo fallback
 
-Stub mode needs no model, MATLAB or network, so the demo can always run. Replay of precomputed outputs (keyed by image SHA-256) is **planned, not built**. When it exists, replayed results will be labelled `cache`, never as live inference.
+Stub mode needs no model, MATLAB or network, so the demo can always run.
+
+**Replay mode:** set `ENGINE_MODE=cache`. If an uploaded image's SHA-256 matches `replay/<sha256>.json`, that precomputed result is returned. It is labelled `engine: cache` with a REPLAY notice and is never presented as live inference. An image with no entry returns a labelled stub result. A replay entry must be an `AnalysisResult` JSON that declares `"engine": "cache"`. `python scripts/make_synthetic_replay.py <image> [fixture]` creates a clearly marked **synthetic** entry for demos. Real entries must come from the project lead.
+
+`ENGINE_MODE=matlab` returns 501 until the MATLAB engine is connected.
